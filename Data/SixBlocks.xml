@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<vehicle data_version="2" is_advanced="true" is_static="false" bodies_id="2"><editor_placement_offset x="0" y="0" z="0"/><authors/><bodies><body unique_id="2"><initial_local_transform 00="1" 01="0" 02="0" 03="0" 10="0" 11="1" 12="0" 13="0" 20="0" 21="0" 22="1" 23="0" 30="0" 31="0" 32="0" 33="1"/><local_transform 00="1" 01="0" 02="0" 03="0" 10="0" 11="1" 12="0" 13="0" 20="0" 21="0" 22="1" 23="0" 30="0" 31="0" 32="0" 33="1"/><components>
+ <c d="01_block" t="0"><o r=" 1,0,0,0, 1,0,0,0, 1" bc="FFFFFFFF" ac="FFFFFFFF" sc="6"><vp x="0" y="1" z="0"/></o></c>
+ <c d="01_block" t="0"><o r="-1,0,0,0,-1,0,0,0, 1" bc="FFE727FF" ac="FFE727FF" sc="6"><vp x="0" y="-1" z="0"/></o></c>
+ <c d="01_block" t="0"><o r=" 1,0,0,0,0, 1,0,-1,0" bc="0059FFFF" ac="0059FFFF" sc="6"><vp x="0" y="0" z="1"/></o></c>
+ <c d="01_block" t="0"><o r=" 1,0,0,0,0,-1,0, 1,0" bc="00E232FF" ac="00E232FF" sc="6"><vp x="0" y="0" z="-1"/></o></c>
+ <c d="01_block" t="0"><o r="0,0,-1, 1,0,0,0,-1,0" bc="FF002BFF" ac="FF002BFF" sc="6"><vp x="1" y="0" z="0"/></o></c>
+ <c d="01_block" t="0"><o r="0,0, 1,-1,0,0,0,-1,0" bc="FF7F27FF" ac="FF7F27FF" sc="6"><vp x="-1" y="0" z="0"/></o></c>
+</components></body></bodies><logic_node_links/></vehicle>

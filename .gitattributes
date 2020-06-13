@@ -1,0 +1,8 @@
+# files with line endings to be left unchanged
+.gitattributes -text
+.gitignore -text
+*.md -text
+*.markdown -text
+*.txt -text
+*.cfg -text
+*.m -text

@@ -1,0 +1,28 @@
+Third party tool: Stormworks Vehicle Parser
+Copyright (c) 2020, Robert Nielsen
+All rights reserved.
+
+
+License (terms of use)
+
+You may download the source code to your computer, where you may modify and run the parser to process your Stormworks Vehicle XML files.
+
+The parser is provided on an "as is" basis without warranty of any kind. The user bears all risks of damage using the Stormworks Vehicle Parser software.
+
+The source code and other project files can be found at the Github repository for the project, https://github.com/Rodhern/StormworksVehicleParser/. The files are copyright and all rights reserved.
+
+
+Redistribution (including repository cloning)
+
+You may download, fork and modify the source code to process your vehicle XML files, practice your F-sharp skills and produce example data for Octave. If you have other legitimate purposes for the source code in mind, please open a Github Issues ticket.
+
+The project files may be redistributed with the usual Git and Github repository cloning and branching functionality and as nescessary for you to modify and run the parser.
+
+All redistribution must obey rules (a) and (b) below.
+(a) Copyright notices and license information may not be removed or altered; but further copyright notices may be added when appropriate.
+(b) Altered versions of the project files must be plainly marked as such; preferably by amending the changelog text file and indicate in the header text of substantial source code files when the contents has been altered.
+
+
+Important notice
+
+I am not affiliated with Stormworks / Sunfire Software Limited in any way. I play the Stormworks game, "Stormworks: Build and Rescue", via the Valve Corporation Steam service, https://store.steampowered.com/app/573090/Stormworks_Build_and_Rescue/.
