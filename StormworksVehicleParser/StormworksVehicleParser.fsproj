@@ -47,6 +47,8 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="ParserBasics.fs" />
+    <Compile Include="XMLParser.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
