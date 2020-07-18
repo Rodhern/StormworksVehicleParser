@@ -69,6 +69,13 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StormworksVehicleParser\StormworksVehicleParser.fsproj">
+      <Name>StormworksVehicleParser</Name>
+      <Project>{39ce29ff-5e39-4bac-a6a7-c169e4560630}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
