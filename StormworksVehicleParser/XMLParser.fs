@@ -130,7 +130,7 @@ open System
     /// Second example: The text for "<Hello Addressee = World/>" would be
     /// "Hello Addressee = World/"; the tag name is "Hello" and the tag owns
     /// one attribute – with attribute key "Addressee" and attribute value
-    /// "World"; the tag is a new tag as well as (simultaniously) an end tag.
+    /// "World"; the tag is a new tag as well as (simultaneously) an end tag.
     public new (s: string) =
       let isnewtag, isendtag =
         match (s.StartsWith "/"), (s.EndsWith "/") with
@@ -144,16 +144,107 @@ open System
         elif isnewtag then let skip = if isendtag then 1 else 0 in s.Substring (0, s.Length - skip)
         else s.Substring 1
       let attrtxt =
-        if hasattribs
-         then let rest1 = s.Substring ((s.IndexOf " ") + 1)
+        if not hasattribs
+         then ""
+         else let rest1 = s.Substring ((s.IndexOf " ") + 1)
               let rest2 = if rest1.EndsWith "/"
                            then rest1.Substring (0, rest1.Length-1)
                            else rest1
               rest2.Trim ()
-         else ""
       let attributes =
         match TagAttributes.New attrtxt with
         | ParseError m -> raise (ParseErrorException (sprintf "ParseError for tag '%s' while parsing attributes with message \"%s\"." name m))
         | Result attrs -> attrs
       { Name= name; IsNewTag= isnewtag; IsEndTag= isendtag; Attributes= attributes }
+  
+  
+    /// An XML text is made up of two ingredients. The main ingredient is tags.
+    /// The other ingredient is entirely optional; it is text delimited by the
+    /// inner most tags. To help tell text fragments that are the content of
+    /// the inner most tags apart from text strings in general, the text
+    /// fragments are given the string alias 'RawContentText'. The alias is in
+    /// turn one of the two discriminated union options of a 'RawPart'; the
+    /// other option being a 'RawTag'.
+    type public RawContentText = string
+    
+    
+    /// The assumption is that an XML text is made up entirely of just two
+    /// ingredients – RawTag parts and RawContentText parts.
+    /// The goal of the 'RawPart' class is to be able to turn a string of
+    /// characters into a string of RawParts (i.e. a 'RawPart list').
+    type public RawPart =
+      | RawTagPart of RawTag
+      | RawContentTextPart of RawContentText
+      with
+        
+        /// Identify where to cut to get the first XML part (RawPart) of the
+        /// string, then return that part and the remaining string.
+        /// The cut is always done at an angle bracket character.
+        static member public PickRawPart (s: string) =
+          let pickTag (s: string) =
+            if s.Length < 3 then ParseError "Text is not long enough to be a tag." else
+            if not (s.StartsWith "<") then ParseError "Character '<' expected!" else
+            if not (s.Contains ">") then ParseError "Character '>' expected!" else
+            let endpos = s.IndexOf ">"
+            let tagtext = s.Substring (1, endpos-1)
+            let resttext = s.Substring (endpos+1)
+            let rawtag = RawTagPart (new RawTag (tagtext.Trim ()))
+            Result (rawtag, resttext.Trim ())
+          let pickContentText (s: string) =
+            if not (s.Contains "<") then ParseError "Character '<' expected!" else
+            let endpos = s.IndexOf "<"
+            let textpart = s.Substring (0, endpos)
+            let resttext = s.Substring (endpos)
+            let rawcontent = RawContentTextPart (textpart.Trim ())
+            Result (rawcontent, resttext)
+          let s = s.Trim ()
+          if s.StartsWith "<"
+           then pickTag s
+           else pickContentText s
+
+
+    /// In its purest form the TagNode represent a raw tag marking the start of
+    /// a node, a matching rawtag marking the end of the node, and the XML raw
+    /// parts found in between.
+    /// When the raw tag marking the start of the node is also marking the end
+    /// of the node (i.e. a single-tag) then the TagNode represents just that
+    /// one raw tag.
+    /// There are three possibilities for the kind of XML raw parts that are
+    /// found between the new raw tag and the matching end raw tag:
+    /// There may be nothing in between the tags – which is functionally
+    /// similar to a single-tag.
+    /// There may be a text fragment – which is then the RawContentText value
+    /// for the node.
+    /// The last possibility is that there are child nodes in between the tags
+    /// – which themselves are represented as TagNode objects.
+    /// The RawContentText text fragment option and the TagNode child nodes
+    /// option are mutually exclusive.
+    type TagNode =
+      val public Tag: RawTag
+      val public ContentText: RawContentText option
+      val public Children: TagNode list
+      public new (tag: RawTag, txtcontent: RawContentText option, children: TagNode list) =
+        if txtcontent.IsSome && (not children.IsEmpty)
+         then raise (ParseErrorException "A tag may have a content text or child tags but not both.")
+        { Tag= tag; ContentText= txtcontent; Children= children }
+      override tn.ToString () =
+        match tn.ContentText with
+        | Some s
+          -> sprintf "{Tag: \"%s\"; Child count: %d; Content text: \"%s\"}" tn.Tag.Name tn.Children.Length s
+        | None
+          -> match tn.Children.Length with
+             | 0 -> sprintf "{Tag: \"%s\"}" tn.Tag.Name
+             | 1 -> sprintf "{Tag: \"%s\"; Child: \"%s\"}" tn.Tag.Name tn.Children.Head.Tag.Name
+             | n -> sprintf "{Tag: \"%s\"; Child count: %d}" tn.Tag.Name tn.Children.Length
+      
+      /// Given a list of raw parts, i.e. a list of raw tags and content text
+      /// fragments, select enough raw parts to create a TagNode. The result
+      /// of the function is the TagNode created from the selected raw parts
+      /// along with the remainder list of raw parts not used for the TagNode.
+      /// PickPartsForTag is used with ParseResult.SplitToParts to turn a
+      /// RawPart list into a TagNode list. When used successfully on an entire
+      /// XML text the resulting list contains exactly one TagNode – the root
+      /// node.
+      static member public PickPartsForTag (partlist: RawPart list) =
+        raise (NotImplementedException "The 'PickPartsForTag' function is not yet implemented!")
   
