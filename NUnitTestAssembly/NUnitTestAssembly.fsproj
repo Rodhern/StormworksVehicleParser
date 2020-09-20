@@ -56,6 +56,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="TestAssembly, part 1 (Basics).fs" />
     <Compile Include="TestAssembly, part 2 (XML).fs" />
+    <Compile Include="TestAssembly, part 3 (DataTypes).fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

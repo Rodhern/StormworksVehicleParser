@@ -49,6 +49,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ParserBasics.fs" />
     <Compile Include="XMLParser.fs" />
+    <Compile Include="DataTypes.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

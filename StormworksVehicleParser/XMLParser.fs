@@ -246,5 +246,60 @@ open System
       /// XML text the resulting list contains exactly one TagNode – the root
       /// node.
       static member public PickPartsForTag (partlist: RawPart list) =
-        raise (NotImplementedException "The 'PickPartsForTag' function is not yet implemented!")
+        /// Split the list of parts into three bits. The first bit is the list
+        /// of parts up until, but excluding, the end tag for the given tag
+        /// name. The second bit is just the end tag matching the given tag
+        /// name. The last bit is the tail of the parts list beyond said end
+        /// tag.
+        let rec splitAtEndTag (tagname: string) (parts: RawPart list) =
+          let rec iterate (acc: RawPart list) (rest: RawPart list): RawPart list * RawPart * RawPart list =
+            match rest with
+            | ((RawContentTextPart _) as part)::tail
+              -> iterate (part::acc) tail
+            | (RawTagPart tag)::_ when tag.Name = tagname && tag.IsNewTag
+              -> raise (ParseErrorException (sprintf "Tag (named \"%s\") within same named tag is (usually) not allowed." tagname))
+            | ((RawTagPart tag) as raw)::tail when tag.Name = tagname && tag.IsEndTag
+              -> if tag.Attributes.Keys.Count > 0
+                  then raise (ParseErrorException "End tags are (usually) not allowed to have attributes.")
+                 List.rev acc, raw, tail
+            | ((RawTagPart tag) as raw)::tail
+              -> if not tag.IsNewTag
+                  then raise (ParseErrorException <| sprintf "Encountered orphaned end tag \"%s\"." tag.Name)
+                 elif tag.IsEndTag
+                  then iterate (raw::acc) tail
+                 else
+                  let subacc, endtag, subtail = splitAtEndTag tag.Name tail
+                  iterate (endtag::(List.rev subacc)@(raw::acc)) subtail
+            | _ -> raise (ParseErrorException (sprintf "End tag for '%s' not found." tagname))
+          iterate [] parts
+        /// Use splitAtEndTag and recursively call PickPartsForTag to build
+        /// child nodes. Once recursion is done return the TagNode made from
+        /// the head tag. The child nodes are the 'Children' (grandchildren and
+        /// so on) of the returned TagNode.
+        let buildNode (headtag: RawTag) (restlist: RawPart list) =
+          if not headtag.IsNewTag
+           then raise (ParseErrorException (sprintf "A new tag is needed to build a new node; tag named '%s' was not a new tag." headtag.Name))
+          elif headtag.IsEndTag // i.e. a single-tag
+           then let node = new TagNode (headtag, None, [])
+                in Result (node, restlist)
+          else
+          let contenttxt, restlist =
+            match restlist with
+            | (RawContentTextPart ctxt)::tail -> Some ctxt, tail
+            | _ -> None, restlist
+          let innerparts, _, restlist =
+            splitAtEndTag headtag.Name restlist
+          let children =
+            match ParseResult<_>.SplitToParts TagNode.PickPartsForTag [] innerparts with
+            | ParseError m -> raise (ParseErrorException <| sprintf "Failed to parse child tags with error message \"%s\"" m)
+            | Result childtagnodes -> childtagnodes
+          Result (TagNode (headtag, contenttxt, children), restlist)
+        // Pass head tag and tail to buildNode and catch any ParseErrorException thrown
+        match partlist with
+        | (RawTagPart tag)::tail
+          -> try
+               buildNode tag tail
+              with | ParseErrorException m -> ParseError m
+        | part::_ -> ParseError <| sprintf "Unable to build TagNode from RawPart '%A'." part
+        | [] -> ParseError "Unable to build TagNode; the part list was empty."
   

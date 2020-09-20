@@ -147,7 +147,21 @@ type RawPartTestClass () =
 [< TestFixture; Category "XML" >]
 type TagNodeTestClass () =
   
-  let unwrap = function | Result result -> result | ParseError msg -> raise (ParseErrorException msg)
+  let AssertIsParseError: 'a list ParseResult -> unit = function
+    | ParseError _ -> () // if it is an error then fine – that was the expected outcome
+    | Result resultlist
+      -> sprintf "Expected to fail with a ParseError, but actual result was a list of length %d." resultlist.Length
+         |> Assert.Fail
+  
+  let AssertXmlTextFails (xmlsource: string) =
+    let rawparts = ParseResult.SplitToParts RawPart.PickRawPart "" xmlsource
+    let result = ParseResult.Map (rawparts, ParseResult.SplitToParts TagNode.PickPartsForTag [])
+    AssertIsParseError result
+  
+  static member public CollectionAssertTagNodesAreEqual (expected: TagNode list, actual: TagNode list) =
+    Assert.AreEqual (expected.Length, actual.Length, "The list of tag nodes did not have the expected length.")
+    let checkpair (e: TagNode) (a: TagNode) = TagNodeTestClass.AssertTagNodesAreEqual (e, a)
+    List.iter2 checkpair expected actual
   
   static member public AssertTagNodesAreEqual (expected: TagNode, actual: TagNode) =
     // Extract expected tag values from expected node.
@@ -196,10 +210,56 @@ type TagNodeTestClass () =
     let expected = new TagNode (root, None, children)
     // Create the root TagNode straight from xml source and check the result.
     let xmlsource = RawPartTestClass.TestExample1Source ()
-    let sourceparts = ParseResult.SplitToParts RawPart.PickRawPart "" xmlsource |> unwrap
+    let sourcepartresult = ParseResult.SplitToParts RawPart.PickRawPart "" xmlsource
     let result =
-      match ParseResult.SplitToParts TagNode.PickPartsForTag [] sourceparts |> unwrap with
-      | [] ->raise (ParseErrorException "Parsing the XML example did not produce a TagNode.")
-      | [node] -> node
+      match ParseResult.Map (sourcepartresult, ParseResult.SplitToParts TagNode.PickPartsForTag []) with
+      | ParseError msg -> raise (ParseErrorException msg)
+      | Result [] -> raise (ParseErrorException "Parsing the XML example did not produce a TagNode.")
+      | Result [node] -> node
       | _ -> raise (ParseErrorException "The XML example produced more than one TagNode; only one was expected.")
     TagNodeTestClass.AssertTagNodesAreEqual (expected, result)
+  
+  [< Test >]
+  member test.TestEmptyString () =
+    let xmlsource = ""
+    let rawparts = ParseResult.SplitToParts RawPart.PickRawPart "" xmlsource
+    let result = ParseResult.Map (rawparts, ParseResult.SplitToParts TagNode.PickPartsForTag [])
+    match result with
+    | Result [] -> () // expected result
+    | _ -> Assert.Fail "Expected an empty list as a result, but the actual result was different."
+  
+  [< Test >]
+  member test.TestInvalidRawPart1 () = AssertXmlTextFails "<X"
+  
+  [< Test >]
+  member test.TestInvalidRawPart2 () = AssertXmlTextFails "<INCOMPLE"
+  
+  [< Test >]
+  member test.TestInvalidRawPart3 () = AssertXmlTextFails "JUST TEXT"
+  
+  [< Test >]
+  member test.TestFailTextFirst () = AssertXmlTextFails "TEXT BFORE <TAG/>"
+  
+  [< Test >]
+  member test.TestFailEndTagFirst () = AssertXmlTextFails "</LONELYTAG>"
+  
+  [< Test >]
+  member test.TestFailNoEndTag () =
+    "<ROOT><GREETING>Hello World!</GREETING><LINECUTOFF/>"
+    |> AssertXmlTextFails
+  
+  [< Test >]
+  member test.TestFailEndTagAttribute () =
+    """<ROOT><GREETING>Hello World!</GREETING Note="This is a weird place for an attritbute"></ROOT>"""
+    |> AssertXmlTextFails
+  
+  [< Test >]
+  member test.TestFailNestedTag () =
+    "<LIST><LIST></LIST></LIST>"
+    |> AssertXmlTextFails
+  
+  [< Test >]
+  member test.TestFailOrphanEndTag () =
+    "<ROOT></OUTOFSEQ><ERROR/><OUTOFSEQ></ROOT>"
+    |> AssertXmlTextFails
+  
