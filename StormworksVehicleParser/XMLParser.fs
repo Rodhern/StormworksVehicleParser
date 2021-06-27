@@ -237,6 +237,27 @@ open System
              | 1 -> sprintf "{Tag: \"%s\"; Child: \"%s\"}" tn.Tag.Name tn.Children.Head.Tag.Name
              | n -> sprintf "{Tag: \"%s\"; Child count: %d}" tn.Tag.Name tn.Children.Length
       
+      /// Initialize a keyed collection with the tag attributes of the raw tag.
+      /// The tag attributes are string values.
+      member public node.CollectAttributes () =
+        { new IKeyValueSource<string,string> with
+           member self.GetKeys () = Set node.Tag.Attributes.Keys
+           member self.GetValues (key: string) = [node.Tag.Attributes.[key]]
+        } |> KeyedCollection
+      
+      /// Initialize a keyed collection of child tag nodes.
+      /// The collection is a keyed shallow copy of the Children property.
+      member public node.CollectChildTags () =
+        { new IKeyValueSource<_,_> with
+           member self.GetKeys () =
+             node.Children
+             |> List.map (fun c -> c.Tag.Name)
+             |> Set
+           member self.GetValues (key: string) =
+             node.Children
+             |> List.filter (fun c -> c.Tag.Name = key)
+        } |> KeyedCollection
+      
       /// Given a list of raw parts, i.e. a list of raw tags and content text
       /// fragments, select enough raw parts to create a TagNode. The result
       /// of the function is the TagNode created from the selected raw parts

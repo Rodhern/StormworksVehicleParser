@@ -263,3 +263,11 @@ type TagNodeTestClass () =
     "<ROOT></OUTOFSEQ><ERROR/><OUTOFSEQ></ROOT>"
     |> AssertXmlTextFails
   
+  [< Test >]
+  member test.CheckCollectAttributes (): unit =
+    raise (new System.NotImplementedException "Test case not implemented yet!")
+  
+  [< Test >]
+  member test.CheckCollectChildTags (): unit =
+    raise (new System.NotImplementedException "Test case not implemented yet!")
+  
