@@ -1,5 +1,5 @@
 ﻿// Stormworks Vehicle Parser, a third party tool.
-// Copyright (c) 2020, Robert Nielsen. All Rights Reserved.
+// Copyright (c) 2021, Robert Nielsen. All Rights Reserved.
 // See License.txt in the repository root for license information.
 namespace ACTConsult.Rodhern.StormworksVehicleParser.XML
 open ACTConsult.Rodhern.StormworksVehicleParser
